@@ -5,6 +5,9 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.04    |29.05.2004| JSTENZEL | now supports "=for perlpoint" and "=begin perlpoint";
+#         |          | JSTENZEL | bugfix: X<word> is equivalent to \X{mode=index_only}<word>,
+#         |          |          | not \X<word>;
 # 0.03    |03.01.2003| JSTENZEL | headlines are preceded by explicit empty lines now;
 #         |          | JSTENZEL | bugfix: \L's address option is "url", not "a";
 #         |          | JSTENZEL | variable __pod2pp__empty__ is now (un)set within
@@ -22,7 +25,7 @@ B<Pod::PerlPoint> - a POD to PerlPoint converter class
 
 =head1 VERSION
 
-This manual describes version B<0.03>.
+This manual describes version B<0.04>.
 
 =head1 SYNOPSIS
 
@@ -71,7 +74,7 @@ require 5;
 package Pod::PerlPoint;
 
 # declare package version
-$VERSION=0.03;
+$VERSION=0.04;
 
 # inheritance
 @ISA=(qw(Pod::Simple::Methody));
@@ -90,6 +93,7 @@ use Carp ();
 use Pod::Simple ();
 use Pod::Simple::Methody ();
 
+use Data::Dumper;
 
 # = CODE SECTION =========================================================================
 
@@ -105,6 +109,9 @@ sub new
 
   # call base class constructor to build the new object
   my $new=$me->SUPER::new(@_);
+
+  # register embedded perlpoint
+  $new->accept_target('perlpoint');
 
   # configure output target
   $new->{output_fh}||=*STDOUT{IO};
@@ -123,6 +130,9 @@ sub new
 # plain text
 sub handle_text
  {
+  # emit immediately in case we are handling embedded PerlPoint
+  print({$_[0]->{output_fh}} $_[1], "\n\n"), return if $_[0]{perlpoint};
+
   # escape special characters (which are not only special at the *beginning*
   # of a paragraph), if necessary
   $_[1]=~s/([\\>~])/\\$1/g unless $_[0]{verbatimFlag};
@@ -226,7 +236,7 @@ sub start_B {$_[0]{paragraph}.='\B<';}
 sub start_C {$_[0]{paragraph}.='\C<';}
 sub start_F {$_[0]{paragraph}.='\C<';}
 sub start_I {$_[0]{paragraph}.='\I<';}
-sub start_X {$_[0]{paragraph}.='\X<';}
+sub start_X {$_[0]{paragraph}.='\X{mode=index_only}<';}
 
 sub start_L
  {
@@ -274,6 +284,19 @@ sub endTag  {$_[0]{paragraph}.='>';}
 *end_F=\&endTag;
 *end_I=\&endTag;
 *end_X=\&endTag;
+
+
+sub start_for
+ {
+  # flag that we are in a target section
+  $_[0]{perlpoint}=1;
+ }
+
+sub end_for
+ {
+  # flag that the target section is complete
+  $_[0]{perlpoint}=0;
+ }
 
 
 # present what we collected (paragraph flush, used for most paragraph types)
@@ -402,8 +425,36 @@ it to make sure it is really empty.
 The POD index tag C<X> is supported and translated into its PerlPoint equivalent, C<\X>.
 
 
+=head2 Embedded PerlPoint
 
-=head2 Credits
+PerlPoint embedded into the POD source is automatically processed when using the
+C<=for perlpoint> or C<=begin perlpoint>/C<=end perlpoint> syntax.
+
+  A I<POD> text.
+
+  =for perlpoint
+  A \I<PerlPoint> text!
+
+  This is B<POD> again.
+
+  =begin perlpoint
+
+  Now for a \B<PerlPoint> example:
+
+   $r=\I<10+20>;
+
+  And a table:
+
+  @|
+  column 1 | column 2
+  cell 1   | cell 2
+  cell 3   | cell 4
+
+  =end perlpoint
+
+
+
+=head1 Credits
 
 This module is strongly based on Pod::Simple::Text. Thanks to its author
 Sean M. Burke.

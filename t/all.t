@@ -5,6 +5,7 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.03    |29.05.2004| JSTENZEL | adapted to module version 0.04;
 # 0.02    |03.01.2003| JSTENZEL | adapted to module version 0.03;
 # 0.01    |10.12.2002| JSTENZEL | new.
 # ---------------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ use Test::More qw(no_plan);
 
 
 # prepare the POD string
-my $pod=<<EOPOD;
+my $pod=<<'EOPOD';
 
 
 Text that should not be treated as POD.
@@ -56,7 +57,7 @@ This is C<I<B<POD>>>.
 
 =item 1
 
-This is a I<X<numbered>> point.
+This is a X<numbered>I<numbered> point.
 
 =back
 
@@ -76,6 +77,22 @@ Plain text again. A F<filename>.
 =back
 
 Links: L<http://use.perl.org>, L</A first headline>.
+
+Embedded PerlPoint:
+
+=for perlpoint
+A \I<perlpoint> text.
+
+And I<POD> again.
+
+=begin perlpoint
+
+@|
+column 1   | column 2
+cell 1     | cell 2
+cell \I<3> | cell 4
+
+=end perlpoint
 
 =cut
 
@@ -115,7 +132,7 @@ ___EOVPPB__
 
 * Another one.
 
-# This is a \I<\X<numbered>> point.
+# This is a \X{mode=index_only}<numbered>\I<numbered> point.
 
 ${__pod2pp__empty__}Plain text again. A \C<filename>.
 
@@ -137,6 +154,18 @@ ___EOVPPB__
 ___EOVPPB__
 
 ${__pod2pp__empty__}Links: \L{url="http://use.perl.org"}<http://use.perl.org>, \REF{type=linked occasion=1 name="A first headline"}<"A first headline">.
+
+${__pod2pp__empty__}Embedded PerlPoint:
+
+
+A \I<perlpoint> text.
+
+${__pod2pp__empty__}And \I<POD> again.
+
+@|
+column 1   | column 2
+cell 1     | cell 2
+cell \I<3> | cell 4
 
 EOPP
 

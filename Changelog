@@ -1,5 +1,27 @@
 
 
+May 2004
+--------
+
+Pod::PerlPoint now accepts embedded PerlPoint:
+
+  =for perlpoint
+  A \I<PerlPoint> text
+
+  =begin perlpoint
+
+  @|
+  column 1 | column 2
+  cell 1   | cell 2
+  cell 3   | cell 4
+
+  =end perlpoint
+
+
+Bugfix: X<word> was translated into \X<word>, while its meaning is
+        \X{mode=index_only}<word>.
+
+
 January 2003:
 -------------
 

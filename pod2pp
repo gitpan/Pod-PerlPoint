@@ -119,7 +119,7 @@ A bundle of packages to deal with PerlPoint documents.
 
 =head1 AUTHOR
 
-Copyright (c) Jochen Stenzel (perl@jochen-stenzel.de), 2002. All rights reserved.
+Copyright (c) Jochen Stenzel (perl@jochen-stenzel.de), 2002-2004. All rights reserved.
 
 
 
@@ -135,7 +135,7 @@ as well.
 
 =head1 AUTHOR
 
-Copyright (c) Jochen Stenzel (perl@jochen-stenzel.de), 2002.
+Copyright (c) Jochen Stenzel (perl@jochen-stenzel.de), 2002-2004.
 All rights reserved.
 
 This script is free software, you can redistribute it and/or modify it
@@ -216,7 +216,7 @@ GetOptions(\%options,
 warn "\n",
      basename($0), ' ',
      do {no strict 'refs'; ${join('::', __PACKAGE__, 'VERSION')}},
-     ", (c) J. Stenzel (perl\@jochen-stenzel.de) 2002. \n\n"
+     ", (c) J. Stenzel (perl\@jochen-stenzel.de) 2002-2004. \n\n"
   unless exists $options{nocopyright};
 
 
