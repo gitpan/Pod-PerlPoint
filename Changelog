@@ -1,10 +1,25 @@
 
 
+January 2003:
+-------------
+
+Headlines are now preceded by explicit empty lines, avoiding trouble with first
+headline detection (which could be recognized as text before).
+
+Bugfix in \L tag generation: Pod::PerlPoint 0.02 produced "a" options instead
+of "url".
+
+The special variable $__pod2pp__empty__ is now set up in the generated PerlPoint
+source, a user has no longer to take care of it.
+
+
+
 
 December 2002:
 --------------
 
 Reimplementation on base of Pod::Simple.
+
 
 
 

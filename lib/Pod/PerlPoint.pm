@@ -5,6 +5,11 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.03    |03.01.2003| JSTENZEL | headlines are preceded by explicit empty lines now;
+#         |          | JSTENZEL | bugfix: \L's address option is "url", not "a";
+#         |          | JSTENZEL | variable __pod2pp__empty__ is now (un)set within
+#         |          |          | the generated PerlPoint, users do no longer have to
+#         |          |          | take care of it themselves;
 # 0.02    |04.12.2002| JSTENZEL | new implementation (derived from Pod::Simple::Text).
 # 0.01    |01.09.2002| JSTENZEL | First version on base of Pod::Parser.
 # ---------------------------------------------------------------------------------------
@@ -17,7 +22,7 @@ B<Pod::PerlPoint> - a POD to PerlPoint converter class
 
 =head1 VERSION
 
-This manual describes version B<0.02>.
+This manual describes version B<0.03>.
 
 =head1 SYNOPSIS
 
@@ -66,7 +71,7 @@ require 5;
 package Pod::PerlPoint;
 
 # declare package version
-$VERSION=0.01;
+$VERSION=0.03;
 
 # inheritance
 @ISA=(qw(Pod::Simple::Methody));
@@ -92,7 +97,6 @@ use Pod::Simple::Methody ();
 # just copied from Pod::Simple::Text ...
 BEGIN {*DEBUG=defined(&Pod::Simple::DEBUG) ? \&Pod::Simple::DEBUG : sub() {0}}
 
-
 # constructor
 sub new
  {
@@ -107,6 +111,7 @@ sub new
 
   # configure object
   $new->{paragraph}='';
+  $new->{_pod2ppEmptyVarDefined}=0;
 
   # provide the new object
   $new;
@@ -122,9 +127,12 @@ sub handle_text
   # of a paragraph), if necessary
   $_[1]=~s/([\\>~])/\\$1/g unless $_[0]{verbatimFlag};
 
-  # check paragraph beginning, guard special charecters, if necessary
+  # check paragraph beginning, guard special characters, if necessary
   # (such characters which have a special PerlPoint meaning but are pure text in POD)
   $_[0]{paragraph}='${__pod2pp__empty__}' unless length($_[0]{paragraph});
+
+  # add a definition of the special variable used, unless done before
+  $_[0]{_pod2ppEmptyVarDefined}=1, $_[0]{paragraph}="\n\n\$__pod2pp__empty__=\n\n$_[0]{paragraph}" unless $_[0]{_pod2ppEmptyVarDefined};
 
   # update text collection
   $_[0]{paragraph}.=$_[1];
@@ -132,6 +140,7 @@ sub handle_text
   # if we are at the beginning of a numbered list, flag that text was seen
   $_[0]{nlist}=2 if length($_[1]) and exists $_[0]{nlist} and $_[0]{nlist}==1;
  }
+
 
 # paragraph - reset internal buffer at the beginning, flush it when completed
 sub start_Para  {$_[0]{paragraph}='';}
@@ -156,8 +165,8 @@ sub _start_head
   # store current headline level
   $_[0]{headlineLevel}=$_[1];
 
-  # start headline
-  $_[0]{paragraph}='=' x $_[1];
+  # start headline, precede it by empty lines to avoid inclusion confusion
+  $_[0]{paragraph}=join('', "\n\n", '=' x $_[1]);
  }
 
 
@@ -182,6 +191,9 @@ sub start_item_number
 
   # begin the list point (in case of a continued list, mark this case)
   $_[0]{paragraph}=($_[0]{listType}[-1] and $_[0]{listType}[-1] eq '#') ? '## ' : '# ';
+
+  # add a definition of the special variable used, unless done before
+  $_[0]{_pod2ppEmptyVarDefined}=1, $_[0]{paragraph}="\n\n\$__pod2pp__empty__=\n\n$_[0]{paragraph}" unless $_[0]{_pod2ppEmptyVarDefined};
 
   # store list type
   $_[0]{listType}[-1]='#';
@@ -228,7 +240,7 @@ sub start_L
      (my $target=$attribs->{to})=~s/([=\"])/\\$1/g;
 
      # prepare the link
-     $_[0]{paragraph}.=qq(\\L{a="$target"}<);
+     $_[0]{paragraph}.=qq(\\L{url="$target"}<);
 
      # mark that the link type is supported
      push(@{$me->{lstack}}, 1);
@@ -361,7 +373,7 @@ Example:
 
 Such a link is transformed using PerlPoints C<\L> tag.
 
-  \L{a="http://use.perl.org"}<http://use.perl.org>
+  \L{url="http://use.perl.org"}<http://use.perl.org>
 
 =item Links to other sections of the same document
 
@@ -380,7 +392,9 @@ used an invalid link, the generated links is made optional.
 
 A PerlPoint variable C<$__pod2pp__empty__> is used to start text paragraphs with, to avoid
 conflicts caused by startup characters that are special to PerlPoint, but just text in POD.
-It is assumed that this variable is, empty or not defined.
+
+It is assumed that this variable is not used elsewhere. The generated PerlPoint unsets
+it to make sure it is really empty.
 
 
 =head2 POD index Tag

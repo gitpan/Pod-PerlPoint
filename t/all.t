@@ -5,6 +5,7 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.02    |03.01.2003| JSTENZEL | adapted to module version 0.03;
 # 0.01    |10.12.2002| JSTENZEL | new.
 # ---------------------------------------------------------------------------------------
 
@@ -85,6 +86,12 @@ EOPOD
 
 # declare what we expect
 my $expected=<<'EOPP';
+
+
+$__pod2pp__empty__=
+
+
+
 =A first headline
 
 ${__pod2pp__empty__}This is \C<\I<\B<POD>>>.
@@ -99,6 +106,8 @@ ${__pod2pp__empty__}This is \C<\I<\B<POD>>>.
   And I<tagged>.
 
 ___EOVPPB__
+
+
 
 ==And a 2nd chapter
 
@@ -127,7 +136,7 @@ ___EOVPPB__
 
 ___EOVPPB__
 
-${__pod2pp__empty__}Links: \L{a="http://use.perl.org"}<http://use.perl.org>, \REF{type=linked occasion=1 name="A first headline"}<"A first headline">.
+${__pod2pp__empty__}Links: \L{url="http://use.perl.org"}<http://use.perl.org>, \REF{type=linked occasion=1 name="A first headline"}<"A first headline">.
 
 EOPP
 
