@@ -1,0 +1,11 @@
+
+Changelog
+MANIFEST
+Makefile.PL
+README
+
+pod2pp
+
+lib/Pod/PerlPoint.pm
+
+t/all.t
