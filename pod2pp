@@ -69,6 +69,16 @@ case I<all> output is redirected to the file specified.
 
 C<-outfile> may be abbreviated.
 
+=item -parserversion
+
+Accepts the version of C<PerlPoint::Parser> to produce for. If this option is omitted,
+it is assumed that a parser prior to 0.39 will be used.
+
+ Example: -parserversion 0.40
+
+Note: for parsers from 0.40 on, this option is I<required> to get readable results. See
+C<Pod::PerlPoint> for details.
+
 =back
 
 
@@ -189,22 +199,20 @@ use Pod::Usage;
 use Getopt::Long;
 use File::Basename;
 use Pod::PerlPoint;
-use Getopt::ArgvFile qw(argvFile);
+use Getopt::ArgvFile 1.07 home=>1, default=>1;
 
 # declarations
 my (%options);
 
-
 # get options
-argvFile(home=>1, default=>1);
-
 GetOptions(\%options,
            "help",              # display help;
            "nocopyright",       # suppress copyright message;
            "noinfo",            # suppress runtime informations;
            "nowarn",            # suppress runtime warnings;
-           "quiet",             # suppress all runtime messages except of error ones;
            "outfile|o=s",       # output filename;
+           "parserversion=f",   # the version of the target parser;
+           "quiet",             # suppress all runtime messages except of error ones;
           ) or die "\n";
 
 
@@ -238,6 +246,9 @@ if (exists $options{outfile})
   $translator->output_fh(\*RESULT);
  }
 
+# prepare fo modern parsers, if possible
+if (exists $options{parserversion} and $options{parserversion}>=0.40)
+ {$translator->configure(parser40=>1);}
 
 # act argument dependend
 if (@ARGV)

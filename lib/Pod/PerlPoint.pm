@@ -5,6 +5,8 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.05    |28.12.2004| JSTENZEL | new configure() allows to switch to dotted text paragraphs
+#         |          |          | (as introduced by PerlPoint::Parser 0.40);
 # 0.04    |29.05.2004| JSTENZEL | now supports "=for perlpoint" and "=begin perlpoint";
 #         |          | JSTENZEL | bugfix: X<word> is equivalent to \X{mode=index_only}<word>,
 #         |          |          | not \X<word>;
@@ -25,7 +27,7 @@ B<Pod::PerlPoint> - a POD to PerlPoint converter class
 
 =head1 VERSION
 
-This manual describes version B<0.04>.
+This manual describes version B<0.05>.
 
 =head1 SYNOPSIS
 
@@ -74,7 +76,10 @@ require 5;
 package Pod::PerlPoint;
 
 # declare package version
-$VERSION=0.04;
+$VERSION=0.05;
+
+# declare attributes
+use fields qw(_safeStartString);
 
 # inheritance
 @ISA=(qw(Pod::Simple::Methody));
@@ -89,11 +94,12 @@ use strict;
 # = LIBRARY SECTION ======================================================================
 
 # load modules
-use Carp ();
-use Pod::Simple ();
-use Pod::Simple::Methody ();
+use Carp;
+use Pod::Simple;
+use Pod::Simple::Methody;
 
 use Data::Dumper;
+
 
 # = CODE SECTION =========================================================================
 
@@ -119,9 +125,23 @@ sub new
   # configure object
   $new->{paragraph}='';
   $new->{_pod2ppEmptyVarDefined}=0;
+  $new->{_safeStartString}='${__pod2pp__empty__}';
 
   # provide the new object
   $new;
+ }
+
+# configuration
+sub configure
+ {
+  # get and check parameters
+  my ($me, %pars)=@_;
+  confess "[BUG] Missing object parameter.\n" unless $me;
+  confess "[BUG] Object parameter is no ", __PACKAGE__, " object.\n" unless ref $me and $me->isa(__PACKAGE__);
+
+  # prepare dotted texts, if necessary
+  $me->{_safeStartString}='.', $me->{_pod2ppEmptyVarDefined}=1
+    if exists $pars{parser40} and $pars{parser40};
  }
 
 
@@ -139,7 +159,7 @@ sub handle_text
 
   # check paragraph beginning, guard special characters, if necessary
   # (such characters which have a special PerlPoint meaning but are pure text in POD)
-  $_[0]{paragraph}='${__pod2pp__empty__}' unless length($_[0]{paragraph});
+  $_[0]{paragraph}=$_[0]{_safeStartString} unless length($_[0]{paragraph});
 
   # add a definition of the special variable used, unless done before
   $_[0]{_pod2ppEmptyVarDefined}=1, $_[0]{paragraph}="\n\n\$__pod2pp__empty__=\n\n$_[0]{paragraph}" unless $_[0]{_pod2ppEmptyVarDefined};
@@ -213,7 +233,7 @@ sub end_item_number
  { 
   # in POD, numbered points might begin with a verbatim block directly, which
   # would produce syntactically incorrect PerlPoint without care
-  $_[0]{paragraph}.='${__pod2pp__empty__}' if $_[0]{nlist}==1;
+  $_[0]{paragraph}.=$_[0]{_safeStartString} if $_[0]{nlist}==1;
 
   # now flush as usual
   $_[0]->emit_par(0);
@@ -411,13 +431,20 @@ used an invalid link, the generated links is made optional.
 
 
 
-=head2 Variable $__pod2pp__empty__
+=head2 PerlPoint parser version and variable $__pod2pp__empty__
 
-A PerlPoint variable C<$__pod2pp__empty__> is used to start text paragraphs with, to avoid
+Unless C<configure> is called with C<parser40> set to a true value, a PerlPoint variable
+C<$__pod2pp__empty__> is used to start text paragraphs with, to avoid
 conflicts caused by startup characters that are special to PerlPoint, but just text in POD.
 
 It is assumed that this variable is not used elsewhere. The generated PerlPoint unsets
 it to make sure it is really empty.
+
+PerlPoint parsers 0.40 and above support I<dotted text paragraphs> to safe generated texts.
+Please call C<configure> with C<parser40> set to a true value before you process your sources
+by C<parse_file()> etc.
+
+Please upgrade to C<PerlPoint::Package> 0.40 or better, if possible.
 
 
 =head2 POD index Tag

@@ -5,6 +5,7 @@
 # ---------------------------------------------------------------------------------------
 # version | date     | author   | changes
 # ---------------------------------------------------------------------------------------
+# 0.04    |28.12.2004| JSTENZEL | adapted to module version 0.05;
 # 0.03    |29.05.2004| JSTENZEL | adapted to module version 0.04;
 # 0.02    |03.01.2003| JSTENZEL | adapted to module version 0.03;
 # 0.01    |10.12.2002| JSTENZEL | new.
@@ -101,8 +102,8 @@ Arbitrary text.
 EOPOD
 
 
-# declare what we expect
-my $expected=<<'EOPP';
+# declare what we expect traditionally
+my $expectedT=<<'EOPP';
 
 
 $__pod2pp__empty__=
@@ -171,23 +172,93 @@ EOPP
 
 
 
+# declare what we expect for parsers >= 0.40
+my $expected40=<<'EOPP';
+
+
+=A first headline
+
+.This is \C<\I<\B<POD>>>.
+
+<<___EOVPPB__
+
+  This is verbatim
+  text.
+
+  Continued.
+
+  And I<tagged>.
+
+___EOVPPB__
 
 
 
-# build a translator
-my $translator=new Pod::PerlPoint;
+==And a 2nd chapter
+
+* This is the explanation.
+
+* Another one.
+
+# This is a \X{mode=index_only}<numbered>\I<numbered> point.
+
+.Plain text again. A \C<filename>.
+
+# .
+
+<<___EOVPPB__
+
+ A verbatim block
+ in a list point.
+
+___EOVPPB__
+
+## .
+
+<<___EOVPPB__
+
+ And its successor.
+
+___EOVPPB__
+
+.Links: \L{url="http://use.perl.org"}<http://use.perl.org>, \REF{type=linked occasion=1 name="A first headline"}<"A first headline">.
+
+.Embedded PerlPoint:
 
 
-# configure it
-my $result;
-$translator->output_string(\$result);
+A \I<perlpoint> text.
 
-# transform this POD text into another text
-$translator->parse_string_document($pod);
+.And \I<POD> again.
 
-# compare
-is($result, $expected);
+@|
+column 1   | column 2
+cell 1     | cell 2
+cell \I<3> | cell 4
 
+EOPP
+
+
+
+
+
+
+# build translators
+my $translatorT=new Pod::PerlPoint;
+my $translator40=new Pod::PerlPoint;
+
+
+# configure them
+my ($resultT, $result40);
+$translatorT->output_string(\$resultT);
+$translator40->output_string(\$result40);
+$translator40->configure(parser40=>1);
+
+# traditionally transform POD text into another text and compare
+$translatorT->parse_string_document($pod);
+is($resultT, $expectedT);
+
+# transform POD text into another text the new way, and compare
+$translator40->parse_string_document($pod);
+is($result40, $expected40);
 
 
 
