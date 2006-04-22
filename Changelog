@@ -1,5 +1,15 @@
 
 
+0.06
+----
+
+Added Perlpoint::Import::POD module, according to the parsers (0.43)
+new standard import filter API. Significant parts of the source come
+from the POD import filter of PerlPointCD which is used for years
+to produce German Perl Workshop CDs, so this is stable code.
+	
+	
+
 December 2004
 -------------
 
